@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>Biased Randomisation - using random.org</title>
+</head>
+<body>
+	Randomises between x and y with z being the value most likely to occur<br><br>
+
+	<table>
+		<tr><td>Lower value:</td><td><input type="text" id="lower" size=1></td></tr>
+		<tr><td>Upper value:</td><td><input type="text" id="upper" size=1></td></tr>
+		<tr><td>Most likely value:</td><td><input type="text" id="likely" size=1></td></tr>
+	</table><br>
+
+	<button onclick="RandomDotOrgAPICall(GenerateList())">Go!</button>
+
+	<p id="result">Result: </p>
+	<p id="qa">QA: </p>
+
+	<script type="text/javascript">
+		function GenerateList()
+		{
+			var list=[];
+
+			lower = parseInt(document.getElementById("lower").value, 10);
+			upper = parseInt(document.getElementById("upper").value, 10);
+			likely = parseInt(document.getElementById("likely").value, 10);
+
+			if (upper-likely>likely-lower)
+				range=upper-likely+1
+			else
+				range=likely-lower+1
+
+			for (var i=lower; i<=upper; i++)
+			{
+				if (i>likely)
+					stop=range-i+likely
+				else
+					stop=range+i-likely
+				
+				for (j=0; j<stop; j++)
+				{
+					list.push(i);
+				}
+			}
+
+			console.log("Generated List: ")
+			console.log(list)
+
+			return list
+		}
+
+		function RandomDotOrgAPICall(list)
+		{
+			url="https://api.random.org/json-rpc/4/invoke"
+
+			var xhr = new XMLHttpRequest();
+			xhr.open("POST", url, true);
+			xhr.setRequestHeader('Content-Type', 'application/json');
+			xhr.send(JSON.stringify({
+			    "jsonrpc": "2.0",
+			    "method": "generateIntegers",
+			    "params": {
+			        "apiKey": "95ac4506-ebc3-4e2f-b3e0-a11980b23b33",
+			        "n": 1,
+			        "min": 0,
+			        "max": list.length-1,
+			        "replacement": true
+			    },
+			    "id": 0
+				}
+			));
+
+			xhr.onload = function() {
+				var data = JSON.parse(this.responseText);
+				console.log("Random.org returned: " + data.result.random.data[0])
+				document.getElementById("result").innerHTML += " " + list[data.result.random.data[0]];
+				QA(list)
+			}
+		}
+
+		function QA(list)
+		{
+			lower = parseInt(document.getElementById("lower").value, 10);
+			upper = parseInt(document.getElementById("upper").value, 10);
+			
+			document.getElementById("qa").innerHTML+="Array Size: "+list.length + "<br>";
+			document.getElementById("qa").innerHTML+="<table>";
+
+			for (i=lower; i<=upper; i++)
+			{
+				document.getElementById("qa").innerHTML+="<tr><td>"+i+"</td>"
+				count = 0
+				for (j=0; j<list.length; j++)
+				{
+					if (list[j]==i)
+						count++
+				}
+				document.getElementById("qa").innerHTML+="<td>"+count+"</td></tr>"
+			}
+			document.getElementById("qa").innerHTML+="</table>"
+
+		}
+	</script>
+</body>
+</html>
